@@ -11,9 +11,9 @@ dotnet tool install --global SoftwarePioniere.Tools.EventStorePassword
 ## Usage
 
 ```
-dotnet eventstore-password 
+eventstore-password 
 
-dotnet eventstore-password --help
+eventstore-password --help
 ```
 
 ## Development
