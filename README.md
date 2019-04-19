@@ -36,8 +36,7 @@ $j=(ConvertFrom-Json -InputObject  ([System.string]::Concat((dotnet-gitversion))
 $vv=$j.NugetVersionV2
 $asv=$j.AssemblySemVer
 
-dotnet build -c Release -p:Version=$vv -p:AssemblyVersion=$asv -p:FileVersion=$asv
-dotnet pack -c Relase --no-build
+dotnet pack -c Release -p:Version=$vv -p:AssemblyVersion=$asv -p:FileVersion=$asv
 
 $pkg=(Get-ChildItem -Path .\nupkg\ -Filter "*$vv.nupkg").FullName
 dotnet nuget push $pkg -s https://api.nuget.org/v3/index.json -k $env:NUGET_API_KEY
