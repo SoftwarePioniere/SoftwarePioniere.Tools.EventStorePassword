@@ -2,7 +2,7 @@
 
 dotnet global tool to change event store password
 
-## Install Tool
+## Installation
 
 ```
 dotnet tool install --global SoftwarePioniere.Tools.EventStorePassword
