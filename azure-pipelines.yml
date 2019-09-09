@@ -14,6 +14,7 @@ steps:
 
 - pwsh: if (!(Test-Path -Path ${{ variables.CakeToolPath }})) { dotnet tool install Cake.Tool --tool-path ${{ variables.CakeToolPath }} --version ${{ variables.CakeVersion }} }
   displayName: 'Install cake tool'
+  workingDirectory: 'tools'
 
 - task: Bash@3
   displayName: Bootstrap Cake
