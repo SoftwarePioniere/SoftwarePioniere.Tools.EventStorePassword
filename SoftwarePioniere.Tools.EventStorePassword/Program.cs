@@ -40,7 +40,16 @@ namespace SoftwarePioniere.Tools.EventStorePassword
                     {
                         var url = optionUrl.HasValue() ? optionUrl.Value() : "localhost";
                         var port = optionPort.HasValue() ? optionPort.ParsedValue : 2113;
-                        await TestPasswordAsync(url, port, argLogin.Value, argPassword.Value);
+                        try
+                        {
+                            await TestPasswordAsync(url, port, argLogin.Value, argPassword.Value);
+                            return 0;
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                            return 1;
+                        }
                     });
                 });
 
@@ -66,20 +75,30 @@ namespace SoftwarePioniere.Tools.EventStorePassword
                     var url = optionUrl.HasValue() ? optionUrl.Value() : "localhost";
                     var port = optionPort.HasValue() ? optionPort.ParsedValue : 2113;
 
-                    var test = await TestPasswordAsync(url, port, argLogin.Value, argNewPassword.Value);
-
-                    if (!test)
+                    try
                     {
-                        await ChangePasswordAsync(url,
-                            port,
-                            argLogin.Value,
-                            argOldPassword.Value,
-                            argNewPassword.Value);
+                        var test = await TestPasswordAsync(url, port, argLogin.Value, argNewPassword.Value);
+
+                        if (!test)
+                        {
+                            await ChangePasswordAsync(url,
+                                port,
+                                argLogin.Value,
+                                argOldPassword.Value,
+                                argNewPassword.Value);
+                        }
+
+                        return 0;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        return 1;
                     }
                 });
             });
 
-         
+
             var optionVersion = app.Option("-v|--version", "Shows the Version", CommandOptionType.NoValue);
 
 
@@ -127,10 +146,14 @@ namespace SoftwarePioniere.Tools.EventStorePassword
 
         private static UsersManager CreateUsersManager(string url, int port)
         {
-            var host = Dns.GetHostEntry(url);
-            var ip = host.AddressList.First(x => x.ToString() != "::1");
-
-            Console.WriteLine("URL IP: {0} {1}", url, ip);
+            if (IPAddress.TryParse(url, out var ip) == false)
+            {
+                Console.WriteLine("Trying Dns GetHostEntry {0}", url);
+                var host = Dns.GetHostEntry(url);
+                ip = host.AddressList.First(x => x.ToString() != "::1");
+            }
+            
+            Console.WriteLine("URL / IP: {0} {1}", url, ip);
 
             var man = new UsersManager(new ConsoleLogger(),
                 new IPEndPoint(ip, port),

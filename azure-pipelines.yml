@@ -3,16 +3,30 @@
 trigger:
 - master
 
+variables:
+  VmImage: 'ubuntu-16.04' # https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=azure-devops
+  CakeVersion: '0.34.1'
+  CakeToolPath: 'dotnet-cake-tool-0-34-1'
+
 pool:
-  name: 'default'
+  vmImage: ${{ variables.VmImage }}
 
 steps:
 
-- pwsh: if (!(Test-Path -Path tools/dotnet-cake-tool-0-33-0)) { dotnet tool install Cake.Tool --tool-path tools/dotnet-cake-tool-0-33-0 --version 0.33.0 --add-source https://api.nuget.org/v3/index.json }
-  displayName: 'install cake global tool'
+- pwsh: if (!(Test-Path -Path ${{ variables.CakeToolPath }})) { dotnet tool install Cake.Tool --tool-path ${{ variables.CakeToolPath }} --version ${{ variables.CakeVersion }} }
+  displayName: 'Install cake tool'
 
-- pwsh: ./tools/dotnet-cake-tool-0-33-0/dotnet-cake.exe build.cake --target="PackAndPublish"
-  displayName: 'run cake'
+- task: Bash@3
+  displayName: Bootstrap Cake
+  inputs:
+    targetType: inline
+    script: exec ./tools/${{ variables.CakeToolPath }}/dotnet-cake build.cake --bootstrap
+
+- task: Bash@3
+  displayName: Run Cake Target
+  inputs:
+    targetType: inline
+    script: exec ./tools/${{ variables.CakeToolPath }}/dotnet-cake build.cake --target="PackAndPublish"
   env:
     NUGET_API_KEY: $(NuGetApiKey)
     MYGET_API_KEY: $(MyGetApiKey)
